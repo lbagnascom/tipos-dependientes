@@ -33,7 +33,7 @@ suc a * b = a + b * a
 
 -- A.1) Demostrar que la suma es asociativa.
 +-assoc : {a b c : ℕ} → (a + b) + c ≡ a + (b + c)
-+-assoc = {!!}
++-assoc = ?
 
 -- A.2) Demostrar que la suma es conmutativa.
 -- Sugerencia: demostrar lemas auxiliares que prueben que:

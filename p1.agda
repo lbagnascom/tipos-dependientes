@@ -1,11 +1,11 @@
 {-
 Desde el punto de vista logico:
-- flip representa  
+- flip representa una propiedad nomás, no?
 - compose representa el combinar dos implicaciones (al estilo transitividad)
 
 Desde el punto de vista computacional:
-- flip
-- compose
+- flip dice que no importa el orden de los argumentos
+- compose permite componer funciones
 -}
 
 flip : {A B C : Set} -> (A -> B -> C) -> B -> A -> C
@@ -31,7 +31,7 @@ data _×_ (A B : Set) : Set where
     _,_ : A -> B -> A × B
 
 recProduct : {A B C : Set} -> (A -> B -> C) -> A × B -> C
-recProduct f (x , x₁) = f x x₁
+recProduct f (x , y) = f x y
 
 {-Dentro de un goal, podemos separar por casos usando C-c C-c (nos pide decir sobre qu'e variable queremos) -}
 {-Dentro de un goal, podemos decir que lo queremos completar usando C-c C-SPACE -}
@@ -50,11 +50,13 @@ proj₂ = recProduct (λ _ y -> y)
 item₃ : {A B : Set} {C : A × B -> Set} -> 
         ((x : A × B) -> C x) -> ((a : A) (b : B) -> (C (a , b)))
 item₃ p a b = p (a , b)
+-- curry
 
 item₄ : {A B : Set} {C : A × B -> Set} -> 
         ((a : A) (b : B) -> (C (a , b))) -> ((x : A × B) -> C x)
 item₄ = indProduct 
- 
+-- uncurry
+
 {-
 Los tipos quedan:
 item₃ : (A × B -> C) -> (A -> B -> C)
@@ -80,4 +82,21 @@ indUnit p tt = p
 data ∑ (A : Set) (B : A -> Set) : Set where
     _,_ : (a : A) -> B a -> ∑ A B
 
--- ∑-elim : {}
+∑-elim : {A : Set} {B : A -> Set} {C : ∑ A B -> Set} -> 
+         ((a : A) -> (b : B a) -> C (a , b)) -> ((x : ∑ A B) -> C x)
+∑-elim p (a , x) = p a x
+
+proj₁∑ : {A : Set} {B : A -> Set} -> (x : ∑ A B) -> A
+proj₁∑ = ∑-elim (λ a b -> a)
+
+proj₂∑ : {A : Set} {B : A -> Set} -> (x : ∑ A B) -> B (proj₁∑ x)
+proj₂∑ = ∑-elim (λ a b -> b)
+
+-- Versión verbose
+-- proj₂∑ : {A : Set} {B : A -> Set} -> (x : ∑ A B) -> B (proj₁∑ x)
+-- proj₂∑ {A} {B} x = ∑-elim {A} {B} {(λ x -> B (proj₁∑ x))} (λ a b -> b) x
+
+axDebil : {A B : Set} {C : A -> (B -> Set)} ->
+    ((a : A) -> (∑ B (C a))) -> 
+    (∑ (A -> B) (λ f -> ((a : A) -> C a (f a))))
+axDebil = {!   !}
