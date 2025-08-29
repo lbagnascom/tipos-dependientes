@@ -99,4 +99,4 @@ proj₂∑ = ∑-elim (λ a b -> b)
 axDebil : {A B : Set} {C : A -> (B -> Set)} ->
     ((a : A) -> (∑ B (C a))) -> 
     (∑ (A -> B) (λ f -> ((a : A) -> C a (f a))))
-axDebil = {!   !}
+axDebil p = (λ a → proj₁∑ (p a)) , (λ a → proj₂∑ (p a))
