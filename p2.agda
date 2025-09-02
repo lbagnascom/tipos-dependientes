@@ -1,4 +1,3 @@
-
 ----
 ---- Práctica 2: Naturales e igualdad
 ----
@@ -20,7 +19,6 @@ infixl 20 _+_
 infixl 30 _*_
 
 ---- Parte A ----
-
 -- Considerar las siguientes definiciones de la suma y el producto:
 
 _+_ : ℕ → ℕ → ℕ
@@ -29,33 +27,135 @@ suc a + b = suc (a + b)
 
 _*_ : ℕ → ℕ → ℕ
 zero  * _ = zero
-suc a * b = a + b * a
+suc a * b = b + a * b
 
 -- A.1) Demostrar que la suma es asociativa.
 +-assoc : {a b c : ℕ} → (a + b) + c ≡ a + (b + c)
-+-assoc = ?
++-assoc {zero} = refl
++-assoc {suc a} = cong suc (+-assoc {a}) 
+
+-- Por (+-assoc {a}) => (a + b) + c ≡ a + (b + c)
+-- Le aplicamos suc a ambos lados de la igualdad usando cong
+
+-- (suc a) + b + c = (suc a) + (b + c)
+-- (suc (a + b)) + c = suc (a + (b + c))
+-- suc (a + b + c) = suc (a + (b + c))
+
 
 -- A.2) Demostrar que la suma es conmutativa.
 -- Sugerencia: demostrar lemas auxiliares que prueben que:
 --   a + zero = a
++-comm₀ : {a : ℕ} → a + zero ≡ a
++-comm₀ {zero} = refl
++-comm₀ {suc a} = cong suc (+-comm₀ {a})
+
 --   a + suc b = suc (a + b)
++-comm₁ : {a b : ℕ} → a + suc b ≡ suc (a + b)
++-comm₁ {zero} = refl
++-comm₁ {suc a} = cong suc (+-comm₁ {a})
+
 +-comm : {a b : ℕ} → a + b ≡ b + a
-+-comm = {!!}
++-comm {zero} {b} = sym +-comm₀
++-comm {suc a} {b} = sym (trans +-comm₁ (trans (cong suc (+-comm {b} {a})) refl))
+
 
 -- A.3) Demostrar que el producto distribuye sobre la suma (a izquierda).
 *-+-distrib-l : {a b c : ℕ} → (a + b) * c ≡ a * c + b * c
-*-+-distrib-l = {!!}
+*-+-distrib-l {zero} = refl
+*-+-distrib-l {suc a} {b} {c} = 
+       begin 
+              (suc a + b) * c
+       ≡⟨⟩
+              (suc (a + b)) * c
+       ≡⟨⟩
+              c + ((a + b) * c)
+       ≡⟨ cong (λ x → c + x) ((*-+-distrib-l {a} {b} {c})) ⟩
+              c + (a * c + b * c)
+       ≡⟨ +-assoc ⟩
+              (c + a * c) + b * c
+       ≡⟨ cong (λ x → x + b * c) refl ⟩
+              suc a * c + b * c
+       ∎
 
 -- A.4) Demostrar que el producto es asociativo:
 *-assoc : {a b c : ℕ} → (a * b) * c ≡ a * (b * c)
-*-assoc = {!!}
+*-assoc {zero} = refl
+*-assoc {suc a} {b} {c} = 
+       begin
+              (suc a * b) * c
+       ≡⟨⟩
+              (b + a * b) * c
+       ≡⟨ *-+-distrib-l {b} {a * b} {c} ⟩
+              b * c + (a * b) * c
+       ≡⟨ cong (λ x → (b * c) + x) (*-assoc {a}) ⟩
+              (b * c) + a * (b * c)
+       ≡⟨⟩
+              suc a * (b * c)
+       ∎
+
+
 
 -- A.5) Demostrar que el producto es conmutativo.
 -- Sugerencia: demostrar lemas auxiliares que prueben que:
 --   a * zero = zero
 --   a * suc b = a + a * b
+*-comm₀ : {a : ℕ} → a * zero ≡ zero
+*-comm₀ {zero} = refl
+*-comm₀ {suc a} = 
+       begin 
+              suc a * zero
+       ≡⟨⟩
+              zero + a * zero
+       ≡⟨⟩
+              a * zero
+       ≡⟨ *-comm₀ {a} ⟩
+              zero
+       ∎
+
++-swap : {a b c : ℕ} → a + (b + c) ≡ b + (a + c)
++-swap {a} {b} {c} = 
+    begin
+        a + (b + c)
+    ≡⟨ sym (+-assoc {a}) ⟩
+        (a + b) + c
+    ≡⟨ cong (λ x → x + c) (+-comm {a}) ⟩
+        (b + a) + c
+    ≡⟨ +-assoc {b} ⟩
+        b + (a + c)
+    ∎
+
+*-comm₁ : {a b : ℕ} → a * suc b ≡ a + a * b
+*-comm₁ {zero} = refl
+*-comm₁ {suc a} {b} = 
+    begin
+        suc a * suc b
+    ≡⟨⟩
+        suc b + a * suc b
+    ≡⟨⟩
+        suc (b + a * suc b)
+    ≡⟨ cong (λ x → suc (b + x)) (*-comm₁ {a}) ⟩
+        suc (b + (a + a * b))
+    ≡⟨ cong suc (+-swap {b} {a}) ⟩
+        suc (a + (b + a * b))
+    ≡⟨⟩
+        suc (a + (suc a) * b)
+    ≡⟨⟩
+        (suc a) + (suc a) * b
+    ∎
+
 *-comm : {a b : ℕ} → a * b ≡ b * a
-*-comm = {!!}
+*-comm {zero} {b} = sym (*-comm₀ {b})
+*-comm {suc a} {b} = 
+    begin
+        suc a * b
+    ≡⟨⟩
+        b + a * b
+    ≡⟨ cong (λ x → b + x) (*-comm {a}) ⟩
+        b + b * a
+    ≡⟨ sym (*-comm₁ {b} {a}) ⟩
+        b * suc a
+    ∎    
+
 
 -- A.6) Demostrar que el producto distribuye sobre la suma (a derecha).
 -- Sugerencia: usar la conmutatividad y la distributividad a izquierda.
