@@ -71,7 +71,7 @@ suc a * b = b + a * b
               c + ((a + b) * c)
        ≡⟨ cong (λ x → c + x) ((*-+-distrib-l {a} {b} {c})) ⟩
               c + (a * c + b * c)
-       ≡⟨ +-assoc ⟩
+       ≡⟨ sym (+-assoc {c}) ⟩
               (c + a * c) + b * c
        ≡⟨ cong (λ x → x + b * c) refl ⟩
               suc a * c + b * c
@@ -160,7 +160,18 @@ suc a * b = b + a * b
 -- A.6) Demostrar que el producto distribuye sobre la suma (a derecha).
 -- Sugerencia: usar la conmutatividad y la distributividad a izquierda.
 *-+-distrib-r : {a b c : ℕ} → a * (b + c) ≡ a * b + a * c
-*-+-distrib-r = {!!}
+*-+-distrib-r {a} {b} {c} = 
+    begin
+        a * (b + c)
+    ≡⟨ *-comm {a} ⟩
+        (b + c) * a
+    ≡⟨ *-+-distrib-l {b} ⟩
+        b * a + c * a
+    ≡⟨ cong (λ x → x + c * a) (*-comm {b}) ⟩
+        a * b + c * a
+    ≡⟨ cong (λ x → a * b + x) (*-comm {c}) ⟩
+        a * b + a * c
+    ∎
 
 --------------------------------------------------------------------------------
 
@@ -184,7 +195,7 @@ suc n ≤? suc m = n ≤? m
 -- Sugerencia: seguir el esquema de inducción con el que se define la función _≤?_.
 
 ≤?-correcta : {n m : ℕ} → (n ≤? m) ≡ true → n ≤ m
-≤?-correcta = {!!}
+≤?-correcta = {!  !}
 
 -- B.2) Demostrar que es imposible que el cero sea el sucesor de algún natural:
 
