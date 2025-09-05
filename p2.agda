@@ -195,12 +195,26 @@ suc n ≤? suc m = n ≤? m
 -- Sugerencia: seguir el esquema de inducción con el que se define la función _≤?_.
 
 ≤?-correcta : {n m : ℕ} → (n ≤? m) ≡ true → n ≤ m
-≤?-correcta = {!  !}
+≤?-correcta {zero} {m} _ = m , +-comm₀
+≤?-correcta {suc _} {zero} ()
+≤?-correcta {suc n} {suc m} p = let (k , q) = ≤?-correcta {n} {m} p in 
+    k , (
+    begin
+        k + suc n
+    ≡⟨ +-comm₁ ⟩
+        suc (k + n)
+    ≡⟨ cong suc q ⟩
+        suc m
+    ∎)
+
+
+-- Posibles personajes para el zoo plp
+-- λ, Γ, ς, 𝕎, \mathcal{I}, ∀, ∃, σ, τ, :-
 
 -- B.2) Demostrar que es imposible que el cero sea el sucesor de algún natural:
 
 zero-no-es-suc : {n : ℕ} → suc n ≡ zero → ⊥
-zero-no-es-suc = {!!}
+zero-no-es-suc = {!   !}
 
 -- B.3) Demostrar que la función es completa con respecto a su especificación.
 -- Sugerencia: seguir el esquema de inducción con el que se define la función _≤?_.
