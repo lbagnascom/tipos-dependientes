@@ -214,19 +214,26 @@ suc n ≤? suc m = n ≤? m
 -- B.2) Demostrar que es imposible que el cero sea el sucesor de algún natural:
 
 zero-no-es-suc : {n : ℕ} → suc n ≡ zero → ⊥
-zero-no-es-suc = {!   !}
+zero-no-es-suc ()
 
 -- B.3) Demostrar que la función es completa con respecto a su especificación.
 -- Sugerencia: seguir el esquema de inducción con el que se define la función _≤?_.
 -- * Para el caso en el que n = suc n' y m = zero, usar el ítem B.2 y propiedades de la suma.
 -- * Para el caso en el que n = suc n' y m = suc m', recurrir a la hipótesis inductiva y propiedades de la suma.
 
+lema_innecesario : {n m : ℕ} → suc n ≤ suc m → n ≤ m
+lema_innecesario {n} {m} (zero , refl) = zero , refl
+lema_innecesario {n} {m} (suc k , refl) = suc k , sym +-comm₁
+
 ≤?-completa : {n m : ℕ} → n ≤ m → (n ≤? m) ≡ true
-≤?-completa = {!!}
+≤?-completa {zero} {m} zero≤m = refl
+≤?-completa {suc n} {zero} (k , p) = ⊥-elim (zero-no-es-suc {k + n} (trans (sym +-comm₁) p))
+≤?-completa {suc n} {suc m} (k , p) = {!  !}
 
 --------------------------------------------------------------------------------
 
 ---- Parte C ----
+
 
 -- La siguiente función corresponde al principio de inducción en naturales:
 
@@ -242,6 +249,13 @@ indℕ C c0 cS (suc n) = cS n (indℕ C c0 cS n)
 _<_ : ℕ → ℕ → Set
 n < m = suc n ≤ m
 
+
+≤-refl : {n : ℕ} → n ≤ n
+≤-refl = zero , refl
+
+≤-zero-es-min : {C : ℕ → Set} → (m : ℕ) → suc m ≤ zero → C m
+≤-zero-es-min {C} m (k , p) = ⊥-elim (zero-no-es-suc {k + m} (trans (sym +-comm₁) p) )
+
 -- C.1) Demostrar el principio de inducción completa, que permite recurrir a la hipótesis
 -- inductiva sobre cualquier número estrictamente menor.
 ind-completa : (C : ℕ → Set)
@@ -250,7 +264,11 @@ ind-completa : (C : ℕ → Set)
                   → C n)
                (n : ℕ)
                → C n
-ind-completa C f n = {!!}
+ind-completa C f zero = f zero (≤-zero-es-min {C})
+ind-completa C f (suc n) = 
+    f (suc n) (λ m x → let ddd = (ind-completa C f m) in {!   !})
+
+
 
 --------------------------------------------------------------------------------
 
@@ -263,19 +281,19 @@ ind≡ : {A : Set}
        {C : (a b : A) → a ≡ b → Set}
      → ((a : A) → C a a refl)
      → (a b : A) (p : a ≡ b) → C a b p
-ind≡ = {!!}
+ind≡ caaRefl a _ refl = caaRefl a
 
 -- D.2) Demostrar nuevamente la simetría de la igualdad, usando ind≡:
 
 sym' : {A : Set} {a b : A} → a ≡ b → b ≡ a
-sym' = {!!}
+sym' {A} {a} {b} = ind≡ {A} {λ a₁ b₁ _ → b₁ ≡ a₁} (λ a₁ → refl) a b
 
 -- D.3) Demostrar nuevamente la transitividad de la igualdad, usando ind≡:
 
 trans' : {A : Set} {a b c : A} → a ≡ b → b ≡ c → a ≡ c
-trans' = {!!}
+trans' {A} {a} {b} {c} = ind≡ {A} {λ a₁ b₁ x → (b₁ ≡ c → a₁ ≡ c)} (λ a₁ a₁≡c → a₁≡c) a b
 
 -- D.4) Demostrar nuevamente que la igualdad es una congruencia, usando ind≡:
 
 cong' : {A B : Set} {a b : A} → (f : A → B) → a ≡ b → f a ≡ f b
-cong' = {!!}
+cong' {A} {B} {a} {b} f = ind≡ {A} {λ a₁ b₁ x → f a₁ ≡ f b₁} (λ a₁ → refl) a b
