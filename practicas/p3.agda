@@ -92,16 +92,43 @@ refl ⁻¹ = refl
 ∙-cancel-left {A} {x} {y} {z} {p} {q} {q'} pq≡pq' =
   begin
     q
-  ≡⟨ {!!} ⟩
-    ((p ⁻¹) ∙ p) ∙ q      -- (ayuda)
-  ≡⟨ {!!} ⟩
+  ≡⟨ ∙-refl-left ⁻¹ ⟩
+    refl ∙ q
+  ≡⟨ cong (λ r → r ∙ q) (∙-⁻¹-left ⁻¹) ⟩
+    ((p ⁻¹) ∙ p) ∙ q
+  ≡⟨ ∙-assoc ⟩
+    (p ⁻¹) ∙ (p ∙ q)
+  ≡⟨ cong (λ r → (p ⁻¹) ∙ r) pq≡pq' ⟩
+    (p ⁻¹) ∙ (p ∙ q')
+  ≡⟨ ∙-assoc ⁻¹ ⟩
+    ((p ⁻¹) ∙ p) ∙ q'
+  ≡⟨ cong (λ r → r ∙ q') (∙-⁻¹-left) ⟩
+    refl ∙ q'
+  ≡⟨ ∙-refl-left ⟩
     q'
   ∎
 
 ∙-cancel-right : {A : Set} {x y z : A} {p p' : x ≡ y} {q : y ≡ z}
                → p ∙ q ≡ p' ∙ q
                → p ≡ p'
-∙-cancel-right = {!!}
+∙-cancel-right {A} {x} {y} {z} {p} {p'} {q} pq≡p'q = 
+    begin
+      p
+    ≡⟨ ∙-refl-right ⁻¹ ⟩
+      p ∙ refl
+    ≡⟨ cong ((λ r → p ∙ r)) (∙-⁻¹-right ⁻¹) ⟩
+      p ∙ (q ∙ (q ⁻¹))
+    ≡⟨ ∙-assoc ⁻¹ ⟩
+      (p ∙ q) ∙ (q ⁻¹)
+    ≡⟨ cong (λ r → r ∙ (q ⁻¹)) pq≡p'q ⟩
+      (p' ∙ q) ∙ (q ⁻¹)
+    ≡⟨ ∙-assoc ⟩
+      p' ∙ (q ∙ (q ⁻¹))
+    ≡⟨ cong (λ r → p' ∙ r) (∙-⁻¹-right) ⟩
+      p' ∙ refl
+    ≡⟨ ∙-refl-right ⟩
+      p'
+    ∎
 
 -- A.6) Usando las propiedades anteriores y sin hacer pattern matching sobre los caminos,
 -- demostrar las siguientes propiedades, que caracterizan a la inversa a izquierda y
@@ -110,12 +137,48 @@ refl ⁻¹ = refl
 ⁻¹-univ-left : {A : Set} {x y z : A} {p : x ≡ y} {q : y ≡ x}
              → p ∙ q ≡ refl
              → p ≡ q ⁻¹
-⁻¹-univ-left = {!!}
+⁻¹-univ-left {A} {x} {y} {z} {p} {q} p∙q≡refl = 
+    let 
+      p∙q≡q⁻¹∙q = 
+        begin
+          p ∙ q
+        ≡⟨ p∙q≡refl ⟩
+          refl
+        ≡⟨ ∙-⁻¹-left ⁻¹ ⟩
+          (q ⁻¹) ∙ q
+        ∎
+    in ∙-cancel-right p∙q≡q⁻¹∙q
+
+-- Otra demo:
+    -- begin
+    --   p
+    -- ≡⟨ ∙-refl-right ⁻¹ ⟩
+    --   p ∙ refl
+    -- ≡⟨ cong (λ r → p ∙ r) (∙-⁻¹-right ⁻¹) ⟩
+    --   p ∙ (q ∙ (q ⁻¹))
+    -- ≡⟨ ∙-assoc ⁻¹ ⟩
+    --   (p ∙ q) ∙ (q ⁻¹)
+    -- ≡⟨ cong (λ r → r ∙ (q ⁻¹)) p∙q≡refl ⟩
+    --   refl ∙ (q ⁻¹)
+    -- ≡⟨ ∙-refl-left ⟩
+    --   (q ⁻¹)
+    -- ∎
+
 
 ⁻¹-univ-right : {A : Set} {x y z : A} {p : x ≡ y} {q : y ≡ x}
               → p ∙ q ≡ refl
               → q ≡ p ⁻¹
-⁻¹-univ-right = {!!}
+⁻¹-univ-right  {A} {x} {y} {z} {p} {q} p∙q≡refl =
+  let 
+      p∙q≡p∙p⁻¹ = 
+        begin
+          p ∙ q
+        ≡⟨ p∙q≡refl ⟩
+          refl
+        ≡⟨ ∙-⁻¹-right ⁻¹ ⟩
+          p ∙ (p ⁻¹)
+        ∎
+  in ∙-cancel-left p∙q≡p∙p⁻¹
 
 -- A.7) Usando las propiedades anteriores y sin hacer pattern matching sobre los caminos,
 -- demostrar la siguiente propiedad de conmutación entre la composición de caminos y
@@ -123,7 +186,24 @@ refl ⁻¹ = refl
 
 ∙-⁻¹-comm : {A : Set} {x y z : A} {p : x ≡ y} {q : y ≡ z}
              → (p ∙ q)⁻¹ ≡ (q ⁻¹) ∙ (p ⁻¹)
-∙-⁻¹-comm = {!!}
+∙-⁻¹-comm {A} {x} {y} {z} {p} {q} =
+    let
+      isinverse-p∙q = 
+        begin
+          ((q ⁻¹) ∙ (p ⁻¹)) ∙ (p ∙ q)
+        ≡⟨ ∙-assoc ⟩
+          (q ⁻¹) ∙ ((p ⁻¹) ∙ (p ∙ q))
+        ≡⟨ cong (λ r → (q ⁻¹) ∙ r) (∙-assoc ⁻¹) ⟩
+          (q ⁻¹) ∙ (((p ⁻¹) ∙ p) ∙ q)
+        ≡⟨ cong (λ r → (q ⁻¹) ∙ (r ∙ q)) (∙-⁻¹-left) ⟩
+          (q ⁻¹) ∙ (refl ∙ q)
+        ≡⟨ cong (λ r → (q ⁻¹) ∙ r) (∙-refl-left) ⟩
+          (q ⁻¹) ∙ q
+        ≡⟨ ∙-⁻¹-left ⟩
+          refl
+        ∎
+    in
+      (⁻¹-univ-left {A} {z} {x} {y} isinverse-p∙q) ⁻¹
 
 ---- Parte B ----
 
