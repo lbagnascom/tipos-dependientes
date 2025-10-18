@@ -35,27 +35,34 @@ refl ⁻¹ = refl
 
 ∙-refl-left : {A : Set} {x y : A} {p : x ≡ y}
             → refl ∙ p ≡ p
-∙-refl-left = {!!}
+∙-refl-left {p = refl} = refl
 
 ∙-refl-right : {A : Set} {x y : A} {p : x ≡ y}
              → p ∙ refl ≡ p
-∙-refl-right = {!!}
+∙-refl-right {p = refl} = refl
 
 -- A.2) Demostrar que la composición de caminos es asociativa.
 
 ∙-assoc : {A : Set} {x y z w : A} {p : x ≡ y} {q : y ≡ z} {r : z ≡ w}
         → (p ∙ q) ∙ r ≡ p ∙ (q ∙ r)
-∙-assoc = {!!}
+∙-assoc {A} {x} {y} {z} {w} {p = refl} {q} {r} = 
+  begin
+    (refl ∙ q) ∙ r 
+  ≡⟨ cong (λ pp → pp ∙ r) ∙-refl-left ⟩ 
+    q ∙ r
+  ≡⟨ ∙-refl-left ⁻¹ ⟩ 
+    refl ∙ (q ∙ r)
+  ∎
 
 -- A.3) Demostrar que la inversa es efectivamente la inversa, a izquierda y a derecha.
 
 ∙-⁻¹-left : {A : Set} {x y : A} {p : x ≡ y}
             → (p ⁻¹) ∙ p ≡ refl
-∙-⁻¹-left = {!!}
+∙-⁻¹-left {p = refl} = refl
 
 ∙-⁻¹-right : {A : Set} {x y : A} {p : x ≡ y}
             → p ∙ (p ⁻¹) ≡ refl
-∙-⁻¹-right = {!!}
+∙-⁻¹-right {p = refl} = refl
 
 -- A.4) Usando las propiedades anteriores y sin hacer pattern matching sobre los caminos,
 -- completar la demostración de que la inversa es involutiva:
@@ -64,15 +71,15 @@ refl ⁻¹ = refl
               → (p ⁻¹) ⁻¹ ≡ p
 ⁻¹-involutive {A} {x} {y} {p} =
     (p ⁻¹) ⁻¹
-  ≡⟨ {!!} ⟩
+  ≡⟨ ∙-refl-right ⁻¹ ⟩
     ((p ⁻¹) ⁻¹) ∙ refl
-  ≡⟨ {!!} ⟩
+  ≡⟨ cong (λ pp → ((p ⁻¹) ⁻¹) ∙ pp) (∙-⁻¹-left ⁻¹) ⟩
     ((p ⁻¹) ⁻¹) ∙ ((p ⁻¹) ∙ p)
-  ≡⟨ {!!} ⟩
+  ≡⟨ ∙-assoc ⁻¹ ⟩
     (((p ⁻¹) ⁻¹) ∙ (p ⁻¹)) ∙ p
-  ≡⟨ {!!} ⟩
+  ≡⟨ cong (λ pp → pp ∙ p) ∙-⁻¹-left ⟩
     refl ∙ p
-  ≡⟨ {!!} ⟩
+  ≡⟨ ∙-refl-left  ⟩
     p
   ∎
 
