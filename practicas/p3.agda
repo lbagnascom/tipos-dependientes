@@ -228,22 +228,43 @@ data Bin : Set where
 
 -- B.1) Definir la función que convierte un número representado en binario a natural:
 bin2nat : Bin → ℕ
-bin2nat binzero      = {!!}
-bin2nat (addbit x b) = {!!}
+bin2nat binzero      = zero
+bin2nat (addbit x b) = 
+  let
+    rec = (bin2nat x)
+    2*rec = rec + rec
+  in
+    b +bit 2*rec
 
 -- B.2) Definir la función sucesor sobre números naturales representados en binario:
 binsuc : Bin → Bin
-binsuc binzero          = {!!}
-binsuc (addbit x false) = {!!}
-binsuc (addbit x true)  = {!!}
+binsuc binzero          = addbit binzero true
+binsuc (addbit x false) = addbit x true
+binsuc (addbit x true)  = addbit (binsuc x) false
 
 -- B.3) Usando binsuc, definir la función que convierte un número natural a su representación binaria:
 nat2bin : ℕ → Bin
-nat2bin = {!!}
+nat2bin zero = addbit binzero false
+nat2bin (suc n) = binsuc (nat2bin n)
 
 -- B.4) Demostrar que bin2nat es la inversa a izquierda de nat2bin:
 nat2bin2nat : (n : ℕ) → bin2nat (nat2bin n) ≡ n
-nat2bin2nat = {!!}
+nat2bin2nat zero = refl
+nat2bin2nat (suc n) = 
+  let 
+    hi = nat2bin2nat n 
+  in 
+    begin
+      bin2nat (nat2bin (suc n))
+    ≡⟨⟩
+      bin2nat (binsuc (nat2bin n))
+    ≡⟨ {!   !} ⟩
+      bin2nat (binsuc (nat2bin n))
+    ≡⟨ {!   !} ⟩
+      {!   !}
+    ≡⟨ {!   !} ⟩
+      suc n
+    ∎
 
 -- B.5) Definir la siguiente función, que descompone un número natural en su cociente y su resto
 -- en la división por 2:
