@@ -226,15 +226,14 @@ data Bin : Set where
 --   addbit (addbit (addbit binzero true) false) false
 -- codifica el número (100)₂ = 4.
 
+2* : ℕ → ℕ
+2* n = n + n
+
 -- B.1) Definir la función que convierte un número representado en binario a natural:
 bin2nat : Bin → ℕ
 bin2nat binzero      = zero
-bin2nat (addbit x b) = 
-  let
-    rec = (bin2nat x)
-    2*rec = rec + rec
-  in
-    b +bit 2*rec
+bin2nat (addbit x b) = b +bit (2* (bin2nat x))
+
 
 -- B.2) Definir la función sucesor sobre números naturales representados en binario:
 binsuc : Bin → Bin
@@ -244,27 +243,54 @@ binsuc (addbit x true)  = addbit (binsuc x) false
 
 -- B.3) Usando binsuc, definir la función que convierte un número natural a su representación binaria:
 nat2bin : ℕ → Bin
-nat2bin zero = addbit binzero false
+nat2bin zero = binzero
 nat2bin (suc n) = binsuc (nat2bin n)
+
+b2n·bsuc≡suc·b2n : {b : Bin} → bin2nat (binsuc b) ≡ suc (bin2nat b)
+b2n·bsuc≡suc·b2n {binzero} = refl
+b2n·bsuc≡suc·b2n {addbit x false} = refl
+b2n·bsuc≡suc·b2n {addbit x true} = 
+  begin
+    bin2nat (binsuc (addbit x true))
+  ≡⟨⟩
+    bin2nat (addbit (binsuc x) false)
+  ≡⟨⟩
+    false +bit (2* (bin2nat (binsuc x)))
+  ≡⟨⟩
+    2* (bin2nat (binsuc x))
+  ≡⟨ cong 2* (b2n·bsuc≡suc·b2n {x}) ⟩
+    2* (suc (bin2nat x))
+  ≡⟨⟩
+    suc (bin2nat x) + suc (bin2nat x)
+  ≡⟨⟩
+    suc ((bin2nat x) + suc (bin2nat x))
+  ≡⟨ cong suc (+-comm (bin2nat x) (suc (bin2nat x))) ⟩
+    suc ((suc (bin2nat x)) + (bin2nat x))
+  ≡⟨⟩
+    suc (suc ((bin2nat x) + (bin2nat x)))
+  ≡⟨⟩
+    suc (suc (2* (bin2nat x)))
+  ≡⟨⟩
+    suc (true +bit (2* (bin2nat x)))
+  ≡⟨⟩
+    suc (bin2nat (addbit x true))
+  ∎
+
 
 -- B.4) Demostrar que bin2nat es la inversa a izquierda de nat2bin:
 nat2bin2nat : (n : ℕ) → bin2nat (nat2bin n) ≡ n
 nat2bin2nat zero = refl
-nat2bin2nat (suc n) = 
-  let 
-    hi = nat2bin2nat n 
-  in 
-    begin
-      bin2nat (nat2bin (suc n))
-    ≡⟨⟩
-      bin2nat (binsuc (nat2bin n))
-    ≡⟨ {!   !} ⟩
-      bin2nat (binsuc (nat2bin n))
-    ≡⟨ {!   !} ⟩
-      {!   !}
-    ≡⟨ {!   !} ⟩
-      suc n
-    ∎
+nat2bin2nat (suc n) =
+  begin
+    bin2nat (nat2bin (suc n))
+  ≡⟨⟩
+    bin2nat (binsuc (nat2bin n))
+  ≡⟨ b2n·bsuc≡suc·b2n {nat2bin n} ⟩
+    suc (bin2nat (nat2bin n))
+  ≡⟨ cong suc (nat2bin2nat n) ⟩
+    suc n
+  ∎
+
 
 -- B.5) Definir la siguiente función, que descompone un número natural en su cociente y su resto
 -- en la división por 2:
