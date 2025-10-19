@@ -291,14 +291,37 @@ nat2bin2nat (suc n) =
     suc n
   ∎
 
++bit-comm-suc : {r : Bool} → {n : ℕ} → (r +bit (suc n)) ≡ suc (r +bit n)
++bit-comm-suc {false} = refl
++bit-comm-suc {true}  = refl
 
 -- B.5) Definir la siguiente función, que descompone un número natural en su cociente y su resto
 -- en la división por 2:
 divmod2 : (n : ℕ) → Σ[ q ∈ ℕ ] Σ[ r ∈ Bool ] n ≡ r +bit (q + q)
-divmod2 zero          = {!!}
-divmod2 (suc zero)    = {!!}
-divmod2 (suc (suc n)) = let (q' , r' , n≡q+q+r') = divmod2 n in
-                          {!!}
+divmod2 zero          = zero , false , refl
+divmod2 (suc zero)    = zero , true , refl
+divmod2 (suc (suc n)) = 
+  let 
+    (q' , r , n≡q+q+r) = divmod2 n 
+    q = suc q'
+  in
+    q , r , 
+    (begin
+      suc (suc n)
+    ≡⟨ cong (λ x → suc (suc x)) n≡q+q+r ⟩
+      suc (suc (r +bit (q' + q'))) 
+    ≡⟨ cong suc (+bit-comm-suc ⁻¹) ⟩
+      suc (r +bit (suc (q' + q'))) 
+    ≡⟨ +bit-comm-suc ⁻¹ ⟩
+      r +bit (suc (suc (q' + q')))
+    ≡⟨⟩
+      r +bit (suc (q + q'))
+    ≡⟨ cong (λ x → r +bit (suc x)) (+-comm q q') ⟩
+      r +bit (suc (q' + q))
+    ≡⟨⟩
+      r +bit (q + q)
+    ∎
+    )
 
 ---- Parte C ----
 
@@ -310,28 +333,47 @@ transport _ refl b = b
 -- equivale a transportar por la familia B vía el camino (cong f p).
 transport-compose : {A A' : Set} (f : A → A') (B : A' → Set) {x y : A} (p : x ≡ y) (b : B (f x))
            → transport (λ x → B (f x)) p b ≡ transport B (cong f p) b
-transport-compose = {!!}
+transport-compose {A} {A'} f B {x} {y} refl b = 
+  begin
+    transport (λ x' → B (f x')) refl b
+  ≡⟨⟩
+    b
+  ≡⟨⟩
+    transport B refl b
+  ≡⟨⟩
+    transport B (cong f refl) b
+  ∎
 
 -- C.2) Demostrar que transportar vía la composición de dos caminos
 -- equivale a transportar separadamente vía cada uno de ellos.
 transport-∙ : {A : Set} (B : A → Set) {x y z : A} (p : x ≡ y) (q : y ≡ z) (b : B x)
            → transport B (p ∙ q) b ≡ transport B q (transport B p b)
-transport-∙ = {!!}
+transport-∙ {A} B {x} {y} {z} refl refl b = refl 
+
+--  Otra forma con un único pattern matching
+  -- begin
+  --   transport B (refl ∙ q) b 
+  -- ≡⟨ cong (λ h → transport B h b) ∙-refl-left  ⟩
+  --   transport B q b
+  -- ≡⟨⟩
+  --   transport B q (transport B refl b)
+  -- ∎
 
 -- C.3) Demostrar que transportar por una familia constante es la identidad.
 transport-const : {A : Set} (B₀ : Set) {x y : A} (p : x ≡ y) (b : B₀)
                 → transport (λ _ → B₀) p b ≡ b
-transport-const = {!!}
+transport-const {A} B₀ {x} {y} refl b = refl
+-- De qué otra forma se podría demostrar?
 
 -- C.4) Demostrar que transportar por una familia de caminos corresponde a componer: 
 transport-path-left : {A : Set} {x y z : A} (p : x ≡ y) (q : x ≡ z)
                     → transport (λ a → a ≡ z) p q ≡ (p ⁻¹) ∙ q
-transport-path-left = {!!}
+transport-path-left {A} {x} {y} {z} refl refl = refl
 
 -- C.5) Similar pero con la composición a derecha:
 transport-path-right : {A : Set} {x y z : A} (p : x ≡ y) (q : z ≡ x)
                      → transport (λ a → z ≡ a) p q ≡ q ∙ p
-transport-path-right = {!!}
+transport-path-right {A} {x} {y} {z} refl refl = refl
 
 ---- Parte D ----
 
@@ -346,9 +388,11 @@ data Fin : (n : ℕ) → Set where
 
 -- D.1) Definir la suma:
 sumaFin : {n m : ℕ} → Fin n → Fin m → Fin (n + m)
-sumaFin finZero     y = {!!}
-sumaFin (finSucc x) y = {!!}
+sumaFin finZero     y = y
+sumaFin (finSucc x) y = finSucc (sumaFin x y)
 
 -- D.2) Demostrar que la suma es conmutativa:
 sumaFin-comm : {n m : ℕ} (x : Fin n) (y : Fin m) → sumaFin x y ≡ transport Fin (+-comm m n) (sumaFin y x)
-sumaFin-comm = {!!}
+sumaFin-comm {zero} {m} finZero y = {!   !}
+sumaFin-comm {n} {m} (finSucc x) y = {!   !}
+
