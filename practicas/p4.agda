@@ -214,7 +214,7 @@ open _≃_
 
 ⊎-assoc₀ : {A B C : Set} → (A ⊎ (B ⊎ C)) → ((A ⊎ B) ⊎ C)
 ⊎-assoc₀ {A} {B} {C} A⊎-B⊎C with A⊎-B⊎C
-... | inj₁ a = inj₁ (inj₁ a)
+... | inj₁ a        = inj₁ (inj₁ a)
 ... | inj₂ (inj₁ b) = inj₁ (inj₂ b)
 ... | inj₂ (inj₂ c) = inj₂ c
 
@@ -222,7 +222,7 @@ open _≃_
 ⊎-assoc₁ {A} {B} {C} A⊎B-⊎C with A⊎B-⊎C
 ... | inj₁ (inj₁ a) = inj₁ a
 ... | inj₁ (inj₂ b) = inj₂ (inj₁ b)
-... | inj₂ c = inj₂ (inj₂ c)
+... | inj₂ c        = inj₂ (inj₂ c)
 
 ⊎-assoc₂ : {A B C : Set} → {x : A ⊎ (B ⊎ C)} → ⊎-assoc₁ (⊎-assoc₀ x) ≡ x
 ⊎-assoc₂ {A} {B} {C} {A⊎-B⊎C} with A⊎-B⊎C
@@ -245,25 +245,16 @@ open _≃_
     to∘from = λ b → ⊎-assoc₃ 
     }
 
-case-to : {A : Set} → (A ⊎ ⊥) → A
-case-to A⊎⊥ with A⊎⊥
-... | inj₁ a = a
-... | inj₂ ()
-
-inj₁∘case-to : {A : Set} {x : A ⊎ ⊥} → inj₁ (case-to x) ≡ x
-inj₁∘case-to {A} {A⊎⊥} with A⊎⊥
-... | inj₁ a = refl
-... | inj₂ ()
-
-case-to∘inj₁ : {A : Set} {a : A} → case-to (inj₁ a) ≡ a
-case-to∘inj₁ {A} {a} = refl
-
 ⊎-⊥-neut : {A : Set} → (A ⊎ ⊥) ≃ A
 ⊎-⊥-neut {A} = record {
-    to = case-to ; 
-    from = inj₁ ; 
-    from∘to = λ a → inj₁∘case-to ; 
-    to∘from = λ b → case-to∘inj₁ 
+    to      = λ { (inj₁ a) → a; 
+                  (inj₂ ())
+                };   
+    from    = inj₁ ; 
+    from∘to = λ { (inj₁ a) → refl; 
+                  (inj₂ ())
+                }; 
+    to∘from = λ b → refl 
     }
 
 -- B.5) Demostrar las siguientes "leyes exponenciales".
@@ -281,16 +272,51 @@ case-to∘inj₁ {A} {a} = refl
 --   C^(A ∙ B) = (C^B)^A
 
 exp-cero : {A : Set} → (⊥ → A) ≃ ⊤
-exp-cero = {!!}
+exp-cero {A} = record { 
+    to = λ _ → tt ; 
+    from = λ _ () ; 
+    from∘to = λ a → {! !} ; 
+    to∘from = λ b → refl 
+    }
 
 exp-uno : {A : Set} → (⊤ → A) ≃ A
-exp-uno = {!!}
+exp-uno = record { 
+    to = λ f → f tt ; 
+    from = λ a _ → a ; 
+    from∘to = λ f → refl ; 
+    to∘from = λ b → refl 
+    }
+
+exp-suma-to : {A B C : Set} → ((A ⊎ B) → C) → ((A → C) × (B → C))
+exp-suma-to f = (λ a → f (inj₁ a)) , (λ a → f (inj₂ a))
+
+exp-suma-from : {A B C : Set} → ((A → C) × (B → C)) → ((A ⊎ B) → C)
+exp-suma-from (ac , bc) = λ {
+    (inj₁ a) → ac a ;
+    (inj₂ b) → bc b
+    }
+
+exp-suma-from∘to : {A B C : Set} → (f : (A ⊎ B) → C) → exp-suma-from (exp-suma-to f) ≡ f
+exp-suma-from∘to {A} {B} {C} f = {!   !}
+
+exp-suma-to∘from : {A B C : Set} (p : (A → C) × (B → C)) → exp-suma-to (exp-suma-from p) ≡ p
+exp-suma-to∘from p = {!   !}
 
 exp-suma : {A B C : Set} → ((A ⊎ B) → C) ≃ ((A → C) × (B → C))
-exp-suma = {!!}
+exp-suma = record { 
+    to = exp-suma-to ; 
+    from = exp-suma-from ; 
+    from∘to = λ f → {!   !} ; 
+    to∘from = λ{ (ac , bc) → refl}
+    }
 
 exp-producto : {A B C : Set} → ((A × B) → C) ≃ (A → B → C)
-exp-producto = {!!}
+exp-producto = record { 
+    to      = λ f a b → f (a , b) ; 
+    from    = λ {f (a , b) → f a b } ; 
+    from∘to = λ f → refl ;
+    to∘from = λ f → refl 
+    }
 
 -- B.5) Demostrar la generalización dependiente:
 
@@ -298,7 +324,11 @@ exp-producto-dep : {A : Set} {B : A → Set} {C : (a : A) → B a → Set}
                           → ((p : Σ[ a ∈ A ] B a) → C (proj₁ p) (proj₂ p))
                             ≃
                             ((a : A) (b : B a) → C a b)
-exp-producto-dep = {!!}
+exp-producto-dep = record { 
+    to      = λ f a Ba → f (a , Ba) ; 
+    from    = λ{ g (a , Ba) → g a Ba} ; 
+    from∘to = λ a → refl ; 
+    to∘from = λ b → refl }
 
 -- Parte C --
 
@@ -347,7 +377,71 @@ compile (e-add e₁ e₂) = (compile e₁ ++ compile e₂) ++ (i-add ∷ [])
 
 -- Demostrar que el compilador es correcto:
 
+
+progr-∘ : (p₁ p₂ : List Instr) → (s : List ℕ) → run (p₁ ++ p₂) s ≡ (run p₂ ∘ run p₁) s
+progr-∘ [] p₂ s = refl
+progr-∘ (i-push n ∷ p₁) p₂ s = progr-∘ p₁ p₂ (n ∷ s)
+progr-∘ (i-add ∷ p₁) p₂ [] = progr-∘ p₁ p₂ []
+progr-∘ (i-add ∷ p₁) p₂ (x ∷ []) = progr-∘ p₁ p₂ (x ∷ [])
+progr-∘ (i-add ∷ p₁) p₂ (x ∷ (y ∷ s)) = progr-∘ p₁ p₂ ((y + x) ∷ s)
+
+++-[] : {A : Set} {xs : List A} → xs ++ [] ≡ xs
+++-[] {A} {[]} = refl
+++-[] {A} {(x ∷ xs)} = cong (x ∷_) (++-[] {A} {xs})
+
+++-assoc : {A : Set} {xs ys zs : List A} → xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs
+++-assoc {_} {[]} {ys} {zs} = refl
+++-assoc {A} {x ∷ xs} {ys} {zs} = cong (x ∷_) (++-assoc {A} {xs} {ys} {zs})
+
+run∘compile : {e : Expr} {s : List ℕ} → run (compile e) s ≡ (run (compile e) []) ++ s
+run∘compile {e-const x} = refl
+run∘compile {e-add e₁ e₂} {[]} = sym ++-[]
+run∘compile {e-add e₁ e₂} {x ∷ []} = 
+    begin
+        run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) (x ∷ [])
+    ≡⟨  progr-∘ (compile e₁ ++ compile e₂) (i-add ∷ []) (x ∷ []) ⟩
+        (run (i-add ∷ []) ∘ run (compile e₁ ++ compile e₂)) (x ∷ [])
+    ≡⟨ cong (run (i-add ∷ [])) (progr-∘ (compile e₁) (compile e₂) (x ∷ [])) ⟩
+        (run (i-add ∷ []) ∘ run (compile e₂) ∘ run (compile e₁)) (x ∷ [])
+    ≡⟨ cong (run (i-add ∷ [])) (run∘compile {e₂} {run (compile e₁) (x ∷ [])}) ⟩
+        run (i-add ∷ []) (run (compile e₂) [] ++ run (compile e₁) (x ∷ []))
+    ≡⟨ cong (λ k → run (i-add ∷ []) (run (compile e₂) [] ++ k)) (run∘compile {e₁} {x ∷ []}) ⟩
+        run (i-add ∷ []) (run (compile e₂) [] ++ (run (compile e₁) [] ++ (x ∷ [])))
+    ≡⟨ cong (run (i-add ∷ [])) ++-assoc ⟩
+        run (i-add ∷ []) ((run (compile e₂) [] ++ run (compile e₁) []) ++ (x ∷ []))
+    ≡⟨ {!   !} ⟩
+        run (i-add ∷ []) ((run (compile e₂) [] ++ run (compile e₁) []) ++ (x ∷ []))
+    ≡⟨ {!   !} ⟩
+        run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) [] ++ (x ∷ [])
+    ∎
+run∘compile {e-add e₁ e₂} {x ∷ (y ∷ s)} = {!   !}
+
 compile-correct : {e : Expr}
                 → run (compile e) [] ≡ eval e ∷ []
-compile-correct = {!!}
-
+compile-correct {e-const x} = refl
+compile-correct {e-add e₁ e₂} = 
+    let
+        hi₁ = compile-correct {e₁}
+        hi₂ = compile-correct {e₂}
+    in 
+        begin
+            run (compile (e-add e₁ e₂)) []
+        ≡⟨⟩
+            run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) []
+        ≡⟨ progr-∘ (compile e₁ ++ compile e₂) (i-add ∷ []) [] ⟩
+            (run (i-add ∷ []) ∘ run (compile e₁ ++ compile e₂)) []
+        ≡⟨ cong (run (i-add ∷ [])) (progr-∘ (compile e₁) (compile e₂) []) ⟩
+            (run (i-add ∷ []) ∘ run (compile e₂) ∘ run (compile e₁)) []
+        ≡⟨ cong (run (i-add ∷ []) ∘ (run (compile e₂))) hi₁ ⟩
+            (run (i-add ∷ []) ∘ run (compile e₂)) (eval e₁ ∷ [])
+        ≡⟨⟩
+            run (i-add ∷ []) (run (compile e₂) (eval e₁ ∷ []))
+        ≡⟨ {!   !} ⟩
+            run (i-add ∷ []) (eval e₂ ∷ (eval e₁ ∷ []))
+        ≡⟨⟩
+            run [] ((eval e₁ + eval e₂) ∷ [])
+        ≡⟨⟩
+            (eval e₁ + eval e₂) ∷ []
+        ≡⟨⟩
+            eval (e-add e₁ e₂) ∷ []
+        ∎
