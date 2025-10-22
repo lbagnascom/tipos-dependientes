@@ -167,25 +167,104 @@ open _≃_
 -- y que ⊤ es el elemento neutro:
 
 ×-comm : {A B : Set} → (A × B) ≃ (B × A)
-×-comm = {!!}
+×-comm = record { 
+    to = λ p → proj₂ p , proj₁ p ; 
+    from = λ p → proj₂ p , proj₁ p  ; 
+    from∘to = λ a → refl ; 
+    to∘from = λ b → refl 
+    }
 
 ×-assoc : {A B C : Set} → (A × (B × C)) ≃ ((A × B) × C)
-×-assoc = {!!}
+×-assoc = record {
+    to = λ p → ((proj₁ p , proj₁ (proj₂ p)) , proj₂ (proj₂ p)) ;
+    from = λ p → proj₁ (proj₁ p) , (proj₂ (proj₁ p) , proj₂ p) ;
+    from∘to = λ a → refl;
+    to∘from = λ b → refl 
+    }
 
 ×-⊤-neut : {A : Set} → (A × ⊤) ≃ A
-×-⊤-neut = {!!}
+×-⊤-neut = record { 
+    to = proj₁ ; 
+    from = _, tt ; 
+    from∘to = λ a → refl ; 
+    to∘from = λ b → refl 
+    }
 
 -- B.3) Demostrar que la suma de tipos es conmutativa, asociativa,
 -- y que ⊥ es el elemento neutro:
 
+⊎-comm₀ : {A B : Set} → (A ⊎ B) → (B ⊎ A)
+⊎-comm₀ A⊎B with A⊎B
+... | inj₁ a = inj₂ a
+... | inj₂ b = inj₁ b
+
+⊎-comm₁ : {A B : Set} {x : A ⊎ B} → ⊎-comm₀ (⊎-comm₀ x) ≡ x
+⊎-comm₁ {A} {B} {x} with x
+... | inj₁ a = refl
+... | inj₂ b = refl
+
 ⊎-comm : {A B : Set} → (A ⊎ B) ≃ (B ⊎ A)
-⊎-comm = {!!}
+⊎-comm {A} {B} = 
+    record { 
+        to = ⊎-comm₀ {A} {B}; 
+        from = ⊎-comm₀ {B} {A} ; 
+        from∘to = λ a → ⊎-comm₁ ; 
+        to∘from = λ b → ⊎-comm₁ 
+    }
+
+⊎-assoc₀ : {A B C : Set} → (A ⊎ (B ⊎ C)) → ((A ⊎ B) ⊎ C)
+⊎-assoc₀ {A} {B} {C} A⊎-B⊎C with A⊎-B⊎C
+... | inj₁ a = inj₁ (inj₁ a)
+... | inj₂ (inj₁ b) = inj₁ (inj₂ b)
+... | inj₂ (inj₂ c) = inj₂ c
+
+⊎-assoc₁ : {A B C : Set} → ((A ⊎ B) ⊎ C) → (A ⊎ (B ⊎ C))
+⊎-assoc₁ {A} {B} {C} A⊎B-⊎C with A⊎B-⊎C
+... | inj₁ (inj₁ a) = inj₁ a
+... | inj₁ (inj₂ b) = inj₂ (inj₁ b)
+... | inj₂ c = inj₂ (inj₂ c)
+
+⊎-assoc₂ : {A B C : Set} → {x : A ⊎ (B ⊎ C)} → ⊎-assoc₁ (⊎-assoc₀ x) ≡ x
+⊎-assoc₂ {A} {B} {C} {A⊎-B⊎C} with A⊎-B⊎C
+... | inj₁ a        = refl
+... | inj₂ (inj₁ b) = refl
+... | inj₂ (inj₂ c) = refl
+
+⊎-assoc₃ : {A B C : Set} → {x : (A ⊎ B) ⊎ C} → ⊎-assoc₀ (⊎-assoc₁ x) ≡ x
+⊎-assoc₃ {A} {B} {C} {A⊎B-⊎C} with A⊎B-⊎C
+... | inj₁ (inj₁ a) = refl
+... | inj₁ (inj₂ b) = refl
+... | inj₂ c        = refl
+
 
 ⊎-assoc : {A B C : Set} → (A ⊎ (B ⊎ C)) ≃ ((A ⊎ B) ⊎ C)
-⊎-assoc = {!!}
+⊎-assoc = record { 
+    to = ⊎-assoc₀ ; 
+    from = ⊎-assoc₁ ; 
+    from∘to = λ a → ⊎-assoc₂ ; 
+    to∘from = λ b → ⊎-assoc₃ 
+    }
+
+case-to : {A : Set} → (A ⊎ ⊥) → A
+case-to A⊎⊥ with A⊎⊥
+... | inj₁ a = a
+... | inj₂ ()
+
+inj₁∘case-to : {A : Set} {x : A ⊎ ⊥} → inj₁ (case-to x) ≡ x
+inj₁∘case-to {A} {A⊎⊥} with A⊎⊥
+... | inj₁ a = refl
+... | inj₂ ()
+
+case-to∘inj₁ : {A : Set} {a : A} → case-to (inj₁ a) ≡ a
+case-to∘inj₁ {A} {a} = refl
 
 ⊎-⊥-neut : {A : Set} → (A ⊎ ⊥) ≃ A
-⊎-⊥-neut = {!!}
+⊎-⊥-neut {A} = record {
+    to = case-to ; 
+    from = inj₁ ; 
+    from∘to = λ a → inj₁∘case-to ; 
+    to∘from = λ b → case-to∘inj₁ 
+    }
 
 -- B.5) Demostrar las siguientes "leyes exponenciales".
 --
