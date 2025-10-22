@@ -42,12 +42,14 @@ _++_ : {A : Set} → List A → List A → List A
 -- A.1) Demostrar que map conmuta con la concatenación:
 map-++ : {A B : Set} {f : A → B} {xs ys : List A}
        → map f (xs ++ ys) ≡ map f xs ++ map f ys
-map-++ = {!!}
+map-++ {A} {B} {f} {[]} {ys} = refl
+map-++ {A} {B} {f} {x ∷ xs} {ys} = cong (f x ∷_) (map-++ {A} {B} {f} {xs} {ys})
 
 -- A.2) Demostrar que map conmuta con la composición:
 map-∘ : {A B C : Set} {f : A → B} {g : B → C} {xs : List A}
        → map (g ∘ f) xs ≡ map g (map f xs)
-map-∘ = {!!}
+map-∘ {A} {B} {C} {f} {g} {[]} = refl
+map-∘ {A} {B} {C} {f} {g} {x ∷ xs} = cong ((g ∘ f) x ∷_) (map-∘ {A} {B} {C} {f} {g} {xs})
 
 -- Definimos el siguiente predicado que se verifica si un elemento
 -- aparece en una lista:
@@ -61,14 +63,21 @@ x ∈ (y ∷ ys) = (x ≡ y) ⊎ (x ∈ ys)
 ∈-++ : ∀ {A : Set} {z : A} {xs ys : List A}
        → z ∈ (xs ++ ys)
        → (z ∈ xs) ⊎ (z ∈ ys)
-∈-++ = {!!}
+∈-++ {A} {z} {[]}     {ys} z∈xs++ys = inj₂ z∈xs++ys
+∈-++ {A} {z} {x ∷ xs} {ys} (inj₁ z≡x) = inj₁ (inj₁ z≡x)
+∈-++ {A} {z} {x ∷ xs} {ys} (inj₂ z∈xs++ys) with (∈-++ {A} {z} {xs} {ys} z∈xs++ys)
+...    | inj₁ z∈xs = inj₁ (inj₂ z∈xs)
+...    | inj₂ z∈ys = inj₂ z∈ys
 
 -- A.4) Demostrar que si un elemento z aparece en una lista xs,
 -- su imagen (f z) aparece en (map f xs):
 ∈-map : ∀ {A B : Set} {f : A → B} {z : A} {xs : List A}
         → z ∈ xs
         → f z ∈ map f xs
-∈-map = {!!}
+∈-map {A} {B} {f} {z} {[]} ()
+∈-map {A} {B} {f} {z} {x ∷ xs} z∈xs with z∈xs
+...    | inj₁ z≡x  = inj₁ (cong f z≡x)
+...    | inj₂ z∈xs = inj₂ (∈-map {A} {B} {f} {z} {xs} z∈xs)
 
 -- Definimos el siguiente predicado que se verifica si todos los
 -- elementos de una lista son iguales:
@@ -82,7 +91,10 @@ todos-iguales (x ∷ (y ∷ ys)) = (x ≡ y) × todos-iguales (y ∷ ys)
 todos-iguales-map : {A B : Set} {f : A → B} {xs : List A}
                   → todos-iguales xs
                   → todos-iguales (map f xs)
-todos-iguales-map = {!!}
+todos-iguales-map {A} {B} {f} {[]}     tod-ig-xs       = tod-ig-xs
+todos-iguales-map {A} {B} {f} {x ∷ []} tod-ig-xs       = tod-ig-xs
+todos-iguales-map {A} {B} {f} {x ∷ (y ∷ ys)} (x≡y , tod-ig-ys) = cong f x≡y 
+                                                               , todos-iguales-map {A} {B} {f} {y ∷ ys} tod-ig-ys
 
 -- Parte B --
 
@@ -99,16 +111,57 @@ record _≃_ (A B : Set) : Set where
     from∘to : (a : A) → from (to a) ≡ a
     to∘from : (b : B) → to (from b) ≡ b
 
+open _≃_
+
 -- B.1) Demostrar que la equivalencia de tipos es reflexiva, simétrica y transitiva:
 
 ≃-refl : ∀ {A} → A ≃ A
-≃-refl = {!!}
+≃-refl = record { 
+    to = λ x → x ; 
+    from = λ x → x ; 
+    from∘to = λ a → refl ; 
+    to∘from = λ b → refl 
+    }
 
 ≃-sym : ∀ {A B} → A ≃ B → B ≃ A
-≃-sym = {!!}
+≃-sym A≃B = record { 
+    to = from A≃B ; 
+    from = to A≃B ; 
+    from∘to = to∘from A≃B ; 
+    to∘from = from∘to A≃B 
+    }
 
 ≃-trans : ∀ {A B C} → A ≃ B → B ≃ C → A ≃ C
-≃-trans = {!!}
+≃-trans A≃B B≃C = 
+    let 
+        from∘to-A≃C x = 
+            begin
+                (from A≃B ∘ from B≃C) ((to B≃C ∘ to A≃B) x) 
+            ≡⟨⟩
+                from A≃B (from B≃C (to B≃C (to A≃B x)))
+            ≡⟨ cong (from A≃B) (from∘to B≃C (to A≃B x)) ⟩
+                from A≃B (to A≃B x)
+            ≡⟨ from∘to A≃B x ⟩
+                x
+            ∎
+        
+        to∘from-A≃C x = 
+            begin
+                (to B≃C ∘ to A≃B) ((from A≃B ∘ from B≃C) x) 
+            ≡⟨⟩
+                to B≃C (to A≃B (from A≃B (from B≃C x)))
+            ≡⟨ cong (to B≃C) (to∘from A≃B (from B≃C x)) ⟩
+                to B≃C (from B≃C x)
+            ≡⟨ to∘from B≃C x ⟩
+                x
+            ∎
+    in
+    record { 
+            to = to B≃C ∘ to A≃B ;
+            from = from A≃B ∘ from B≃C ;
+            from∘to = λ a → from∘to-A≃C a ;
+            to∘from = λ a → to∘from-A≃C a
+    }
 
 -- B.2) Demostrar que el producto de tipos es conmutativo, asociativo,
 -- y que ⊤ es el elemento neutro:
