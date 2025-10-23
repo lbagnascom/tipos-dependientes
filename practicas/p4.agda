@@ -271,11 +271,21 @@ open _≃_
 --   C^(A + B) = C^A ∙ C^B
 --   C^(A ∙ B) = (C^B)^A
 
+--- A partir de acá necesito usar extensionalidad funcional algunas veces:
+
+ExtensionalidadFuncional : Set₁
+ExtensionalidadFuncional =
+  {A : Set} {B : A → Set} {f g : (a : A) → B a}
+  → ((a : A) → f a ≡ g a)
+  → f ≡ g
+
+postulate extensionalidad-funcional : ExtensionalidadFuncional
+
 exp-cero : {A : Set} → (⊥ → A) ≃ ⊤
 exp-cero {A} = record { 
     to = λ _ → tt ; 
     from = λ _ () ; 
-    from∘to = λ a → {! !} ; 
+    from∘to = λ a → extensionalidad-funcional (λ ()); 
     to∘from = λ b → refl 
     }
 
@@ -296,17 +306,16 @@ exp-suma-from (ac , bc) = λ {
     (inj₂ b) → bc b
     }
 
-exp-suma-from∘to : {A B C : Set} → (f : (A ⊎ B) → C) → exp-suma-from (exp-suma-to f) ≡ f
-exp-suma-from∘to {A} {B} {C} f = {!   !}
-
-exp-suma-to∘from : {A B C : Set} (p : (A → C) × (B → C)) → exp-suma-to (exp-suma-from p) ≡ p
-exp-suma-to∘from p = {!   !}
+exp-suma-from∘to : {A B C : Set} → (f : (A ⊎ B) → C) → (x : A ⊎ B) → exp-suma-from (exp-suma-to f) x ≡ f x
+exp-suma-from∘to {A} {B} {C} f x with x
+... | inj₁ a = refl
+... | inj₂ b = refl 
 
 exp-suma : {A B C : Set} → ((A ⊎ B) → C) ≃ ((A → C) × (B → C))
 exp-suma = record { 
     to = exp-suma-to ; 
     from = exp-suma-from ; 
-    from∘to = λ f → {!   !} ; 
+    from∘to = λ f → extensionalidad-funcional (exp-suma-from∘to f) ; 
     to∘from = λ{ (ac , bc) → refl}
     }
 
