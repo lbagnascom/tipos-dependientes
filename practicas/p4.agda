@@ -378,70 +378,34 @@ compile (e-add e₁ e₂) = (compile e₁ ++ compile e₂) ++ (i-add ∷ [])
 -- Demostrar que el compilador es correcto:
 
 
-progr-∘ : (p₁ p₂ : List Instr) → (s : List ℕ) → run (p₁ ++ p₂) s ≡ (run p₂ ∘ run p₁) s
-progr-∘ [] p₂ s = refl
-progr-∘ (i-push n ∷ p₁) p₂ s = progr-∘ p₁ p₂ (n ∷ s)
-progr-∘ (i-add ∷ p₁) p₂ [] = progr-∘ p₁ p₂ []
-progr-∘ (i-add ∷ p₁) p₂ (x ∷ []) = progr-∘ p₁ p₂ (x ∷ [])
-progr-∘ (i-add ∷ p₁) p₂ (x ∷ (y ∷ s)) = progr-∘ p₁ p₂ ((y + x) ∷ s)
+progr-∘ : {s : List ℕ} {p₁ p₂ : List Instr} → run (p₁ ++ p₂) s ≡ (run p₂ ∘ run p₁) s
+progr-∘ {_}            {[]}            = refl
+progr-∘ {s}            {i-push n ∷ p₁} = progr-∘ {n ∷ s} {p₁}
+progr-∘ {[]}           {i-add ∷ p₁}    = progr-∘ {[]} {p₁}
+progr-∘ {x ∷ []}       {i-add ∷ p₁}    = progr-∘ {x ∷ []} {p₁}
+progr-∘ {x ∷ (y ∷ s)}  {i-add ∷ p₁}    = progr-∘ {(y + x) ∷ s} {p₁}
 
-++-[] : {A : Set} {xs : List A} → xs ++ [] ≡ xs
-++-[] {A} {[]} = refl
-++-[] {A} {(x ∷ xs)} = cong (x ∷_) (++-[] {A} {xs})
-
-++-assoc : {A : Set} {xs ys zs : List A} → xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs
-++-assoc {_} {[]} {ys} {zs} = refl
-++-assoc {A} {x ∷ xs} {ys} {zs} = cong (x ∷_) (++-assoc {A} {xs} {ys} {zs})
-
-run∘compile : {e : Expr} {s : List ℕ} → run (compile e) s ≡ (run (compile e) []) ++ s
-run∘compile {e-const x} = refl
-run∘compile {e-add e₁ e₂} {[]} = sym ++-[]
-run∘compile {e-add e₁ e₂} {x ∷ []} = 
-    begin
-        run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) (x ∷ [])
-    ≡⟨  progr-∘ (compile e₁ ++ compile e₂) (i-add ∷ []) (x ∷ []) ⟩
-        (run (i-add ∷ []) ∘ run (compile e₁ ++ compile e₂)) (x ∷ [])
-    ≡⟨ cong (run (i-add ∷ [])) (progr-∘ (compile e₁) (compile e₂) (x ∷ [])) ⟩
-        (run (i-add ∷ []) ∘ run (compile e₂) ∘ run (compile e₁)) (x ∷ [])
-    ≡⟨ cong (run (i-add ∷ [])) (run∘compile {e₂} {run (compile e₁) (x ∷ [])}) ⟩
-        run (i-add ∷ []) (run (compile e₂) [] ++ run (compile e₁) (x ∷ []))
-    ≡⟨ cong (λ k → run (i-add ∷ []) (run (compile e₂) [] ++ k)) (run∘compile {e₁} {x ∷ []}) ⟩
-        run (i-add ∷ []) (run (compile e₂) [] ++ (run (compile e₁) [] ++ (x ∷ [])))
-    ≡⟨ cong (run (i-add ∷ [])) ++-assoc ⟩
-        run (i-add ∷ []) ((run (compile e₂) [] ++ run (compile e₁) []) ++ (x ∷ []))
-    ≡⟨ {!   !} ⟩
-        run (i-add ∷ []) ((run (compile e₂) [] ++ run (compile e₁) []) ++ (x ∷ []))
-    ≡⟨ {!   !} ⟩
-        run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) [] ++ (x ∷ [])
-    ∎
-run∘compile {e-add e₁ e₂} {x ∷ (y ∷ s)} = {!   !}
-
-compile-correct : {e : Expr}
-                → run (compile e) [] ≡ eval e ∷ []
-compile-correct {e-const x} = refl
-compile-correct {e-add e₁ e₂} = 
+compile-correct₀ : {e : Expr} {s : List ℕ} → run (compile e) s ≡ eval e ∷ s
+compile-correct₀ {e-const _} = refl
+compile-correct₀ {e-add e₁ e₂} {s} = 
     let
-        hi₁ = compile-correct {e₁}
-        hi₂ = compile-correct {e₂}
-    in 
-        begin
-            run (compile (e-add e₁ e₂)) []
-        ≡⟨⟩
-            run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) []
-        ≡⟨ progr-∘ (compile e₁ ++ compile e₂) (i-add ∷ []) [] ⟩
-            (run (i-add ∷ []) ∘ run (compile e₁ ++ compile e₂)) []
-        ≡⟨ cong (run (i-add ∷ [])) (progr-∘ (compile e₁) (compile e₂) []) ⟩
-            (run (i-add ∷ []) ∘ run (compile e₂) ∘ run (compile e₁)) []
-        ≡⟨ cong (run (i-add ∷ []) ∘ (run (compile e₂))) hi₁ ⟩
-            (run (i-add ∷ []) ∘ run (compile e₂)) (eval e₁ ∷ [])
-        ≡⟨⟩
-            run (i-add ∷ []) (run (compile e₂) (eval e₁ ∷ []))
-        ≡⟨ {!   !} ⟩
-            run (i-add ∷ []) (eval e₂ ∷ (eval e₁ ∷ []))
-        ≡⟨⟩
-            run [] ((eval e₁ + eval e₂) ∷ [])
-        ≡⟨⟩
-            (eval e₁ + eval e₂) ∷ []
-        ≡⟨⟩
-            eval (e-add e₁ e₂) ∷ []
-        ∎
+        hi-e₁ = compile-correct₀ {e₁}
+        hi-e₂ = compile-correct₀ {e₂}
+    in
+    begin
+        run ((compile e₁ ++ compile e₂) ++ (i-add ∷ [])) s 
+    ≡⟨ progr-∘ {s} {compile e₁ ++ compile e₂} ⟩
+        run (i-add ∷ []) (run (compile e₁ ++ compile e₂) s) 
+    ≡⟨ cong (run (i-add ∷ [])) (progr-∘ {s} {compile e₁}) ⟩
+        run (i-add ∷ []) (run (compile e₂) (run (compile e₁) s)) 
+    ≡⟨ cong (λ k → run (i-add ∷ []) (run (compile e₂) k)) hi-e₁ ⟩
+        run (i-add ∷ []) (run (compile e₂) (eval e₁ ∷ s)) 
+    ≡⟨ cong (run (i-add ∷ [])) hi-e₂ ⟩
+        run (i-add ∷ []) (eval e₂ ∷ (eval e₁ ∷ s)) 
+    ≡⟨⟩
+      (eval e₁ + eval e₂) ∷ s
+    ∎
+
+
+compile-correct : {e : Expr} → run (compile e) [] ≡ eval e ∷ []
+compile-correct {e} = compile-correct₀ {e} {[]}
