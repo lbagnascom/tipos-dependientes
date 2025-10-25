@@ -8,7 +8,7 @@ open import Data.Empty using (⊥-elim)
 open import Data.List using (List; []; _∷_)
 open import Data.Product using (_×_; Σ-syntax; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Nat using (ℕ; zero; suc; _+_; _≤_; _≟_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _≤_; _≟_; s≤s⁻¹)
 open import Data.Nat.Properties using (≤-step; ≤-refl; ≤-trans; +-monoʳ-≤)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 
@@ -35,7 +35,11 @@ reverse (x ∷ xs) = reverse xs ++ (x ∷ [])
 split : {A : Set} (xs : List A) (k : ℕ)
       → k ≤ length xs
       → Σ[ ys ∈ List A ] Σ[ zs ∈ List A ] ((xs ≡ ys ++ zs) × k ≡ length ys)
-split = {!!}
+split []       zero    0≤#xs   = [] , [] , refl , refl
+split (x ∷ xs) zero    0≤#xs   = [] , x ∷ xs , refl , refl
+split (x ∷ xs) (suc m) k≤#x∷xs = 
+  let (ys' , zs' , xs≡ys'++zs' , m≤#xs) = split xs m (s≤s⁻¹ k≤#x∷xs) in
+  x ∷ ys' , zs' , cong (x ∷_) xs≡ys'++zs' , cong suc m≤#xs
 
 -- Definimos un predicado "x ∈ ys" que es verdadero si x aparece en ys:
 
