@@ -66,11 +66,11 @@ lema1 {x} {y} {ys} refl = zero
 -- A.3) Demostrar que la igualdad de listas es decidible
 -- asumiendo que es decidible la igualdad de sus elementos.
 
-lema2 : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → x ≡ y
-lema2 refl = refl
+∷-inv₁ : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → x ≡ y
+∷-inv₁ refl = refl
 
-lema3 : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
-lema3 refl = refl
+∷-inv₂ : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+∷-inv₂ refl = refl
 
 lema4 : {A : Set} {x y : A} {xs ys : List A} → x ≡ y → xs ≡ ys → x ∷ xs ≡ y ∷ ys
 lema4 refl refl = refl
@@ -84,11 +84,11 @@ List-igualdad-decidible eq []       (y ∷ ys) = no λ ()
 List-igualdad-decidible eq (x ∷ xs) []       = no λ ()
 List-igualdad-decidible eq (x ∷ xs) (y ∷ ys) 
   with eq x y
-... | no ¬x≡y = no λ x∷xs≡y∷ys → ¬x≡y (lema2 x∷xs≡y∷ys)  
+... | no ¬x≡y = no λ x∷xs≡y∷ys → ¬x≡y (∷-inv₁ x∷xs≡y∷ys)  
 ... | yes x≡y 
     with List-igualdad-decidible eq xs ys
 ...   | yes xs≡ys = yes (lema4 x≡y xs≡ys)
-...   | no ¬xs≡ys = no λ x∷xs≡y∷ys → ¬xs≡ys (lema3 x∷xs≡y∷ys)
+...   | no ¬xs≡ys = no λ x∷xs≡y∷ys → ¬xs≡ys (∷-inv₂ x∷xs≡y∷ys)
 
 ---- Parte B ----
 
@@ -144,14 +144,22 @@ _ ~∎ = ~-refl
      → xs ~ xs'
      → ys ~ ys'
      → xs ++ ys ~ xs' ++ ys'
-~-++ {[]}     {ys} {xs'} {ys'} p q = q
-~-++ {x ∷ xs} {ys} {xs'} {ys'} p q = {!   !}
-  --   xs ++ ys 
-  -- ~⟨ {!   !} ⟩
-  --   xs' ++ ys'
-  -- ~∎
+~-++ {xs}             {ys} {xs'}               {ys'} ~-empty         q = q
+~-++ {x ∷ xs}         {ys} {x' ∷ xs'}          {ys'} (~-cons p)      q = ~-cons (~-++ p q)
+~-++ {x₁ ∷ (x₂ ∷ xs)} {ys} {x'₁ ∷ (x'₂ ∷ xs')} {ys'} (~-swap p)      q = ~-swap (~-++ p q)
+~-++ {xs}             {ys} {xs'}               {ys'} (~-trans p₁ p₂) q = ~-trans (~-++ p₁ q) (~-++ p₂ ~-refl)
 
 -- B.4) Demostrar que una lista invertida es permutación de la lista original:
+
+~-push : {x : ℕ} {xs : List ℕ} → (xs ++ (x ∷ [])) ~ x ∷ xs
+~-push {x} {[]} = ~-refl
+~-push {x} {x₁ ∷ xs} = 
+      x₁ ∷ (xs ++ (x ∷ [])) 
+    ~⟨ ~-cons ~-push ⟩ 
+      x₁ ∷ x ∷ xs
+    ~⟨ ~-swap ~-refl ⟩ 
+      x ∷ x₁ ∷ xs
+    ~∎
 
 ~-reverse : {xs : List ℕ} → reverse xs ~ xs
 ~-reverse {[]}     = ~-empty
@@ -159,9 +167,9 @@ _ ~∎ = ~-refl
     reverse (x ∷ xs)
   ~⟨ ~-refl ⟩
     reverse xs ++ (x ∷ [])
-  ~⟨ {!!} ⟩
+  ~⟨ ~-++ (~-reverse {xs}) ~-refl ⟩
     xs ++ (x ∷ [])
-  ~⟨ {!!} ⟩
+  ~⟨ ~-push ⟩
     x ∷ xs
   ~∎
 
