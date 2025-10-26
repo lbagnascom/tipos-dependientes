@@ -225,10 +225,26 @@ lema_innecesario : {n m : ℕ} → suc n ≤ suc m → n ≤ m
 lema_innecesario {n} {m} (zero , refl) = zero , refl
 lema_innecesario {n} {m} (suc k , refl) = suc k , sym +-comm₁
 
+pred : ℕ → ℕ
+pred zero = zero
+pred (suc n) = n
+
 ≤?-completa : {n m : ℕ} → n ≤ m → (n ≤? m) ≡ true
 ≤?-completa {zero} {m} zero≤m = refl
 ≤?-completa {suc n} {zero} (k , p) = ⊥-elim (zero-no-es-suc {k + n} (trans (sym +-comm₁) p))
-≤?-completa {suc n} {suc m} (k , p) = {!  !}
+≤?-completa {suc n} {suc m} (k , p) = ≤?-completa {n} {m} (k , (
+    begin
+            k + n
+        ≡⟨⟩
+            pred (suc (k + n))
+        ≡⟨ cong pred (sym (+-comm₁ {k} {n})) ⟩
+            pred (k + suc n)
+        ≡⟨ cong pred p ⟩
+            pred (suc m)
+        ≡⟨⟩
+            m
+        ∎
+    ))
 
 --------------------------------------------------------------------------------
 
@@ -249,25 +265,29 @@ indℕ C c0 cS (suc n) = cS n (indℕ C c0 cS n)
 _<_ : ℕ → ℕ → Set
 n < m = suc n ≤ m
 
-
 ≤-refl : {n : ℕ} → n ≤ n
 ≤-refl = zero , refl
 
-≤-zero-es-min : {C : ℕ → Set} → (m : ℕ) → suc m ≤ zero → C m
-≤-zero-es-min {C} m (k , p) = ⊥-elim (zero-no-es-suc {k + m} (trans (sym +-comm₁) p) )
+sucm<0-imp-⊥ : {C : ℕ → Set} → (m : ℕ) → suc m < zero → ⊥
+sucm<0-imp-⊥ {C} m (zero , ())
+sucm<0-imp-⊥ {C} m (suc k , ())
 
 -- C.1) Demostrar el principio de inducción completa, que permite recurrir a la hipótesis
 -- inductiva sobre cualquier número estrictamente menor.
 ind-completa : (C : ℕ → Set)
                (f : (n : ℕ)
-                  → ((m : ℕ) → suc m ≤ n → C m)
+                  → ((m : ℕ) → suc m < n → C m)
                   → C n)
                (n : ℕ)
                → C n
-ind-completa C f zero = f zero (≤-zero-es-min {C})
+ind-completa C f zero = f zero (λ m sucm<zero → ⊥-elim (sucm<0-imp-⊥ {C} m sucm<zero))
 ind-completa C f (suc n) = 
-    f (suc n) (λ m x → let ddd = (ind-completa C f m) in {!   !})
-
+    let
+        hi = ind-completa C f n
+        a = f n (λ m sm<n → {!   !})
+        b = f (suc n) {!   !}
+    in
+        {!   !}
 
 
 --------------------------------------------------------------------------------

@@ -50,16 +50,45 @@ data _∈_ : ℕ → List ℕ → Set where
 -- A.2) Demostrar que es posible decidir si un número natural aparece en una lista.
 -- (Usar _≟_ para decidir la igualdad de números naturales).
 
+lema1 : {x y : ℕ} {ys : List ℕ} → x ≡ y → x ∈ (y ∷ ys)
+lema1 {x} {y} {ys} refl = zero 
+
 ∈-decidible : {x : ℕ} {ys : List ℕ} → Dec (x ∈ ys)
-∈-decidible = {!!}
+∈-decidible {x} {[]} = no (λ ())
+∈-decidible {x} {y ∷ ys} 
+  with ∈-decidible {x} {ys}
+... | yes x∈ys = yes (suc x∈ys)
+... | no  x∉ys 
+    with x ≟ y 
+...   | yes x=y = yes (lema1 x=y)
+...   | no  x≠y = no λ{ (suc x∈ys) → x∉ys x∈ys; zero → x≠y refl } 
 
 -- A.3) Demostrar que la igualdad de listas es decidible
 -- asumiendo que es decidible la igualdad de sus elementos.
 
+lema2 : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → x ≡ y
+lema2 refl = refl
+
+lema3 : {A : Set} {x y : A} {xs ys : List A} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
+lema3 refl = refl
+
+lema4 : {A : Set} {x y : A} {xs ys : List A} → x ≡ y → xs ≡ ys → x ∷ xs ≡ y ∷ ys
+lema4 refl refl = refl
+
+
 List-igualdad-decidible : {A : Set}
                         → ((x y : A) → Dec (x ≡ y))
                         → ((xs ys : List A) → Dec (xs ≡ ys))
-List-igualdad-decidible dec-eq-A xs ys = {!!}
+List-igualdad-decidible eq []       []       = yes refl
+List-igualdad-decidible eq []       (y ∷ ys) = no λ ()
+List-igualdad-decidible eq (x ∷ xs) []       = no λ ()
+List-igualdad-decidible eq (x ∷ xs) (y ∷ ys) 
+  with eq x y
+... | no ¬x≡y = no λ x∷xs≡y∷ys → ¬x≡y (lema2 x∷xs≡y∷ys)  
+... | yes x≡y 
+    with List-igualdad-decidible eq xs ys
+...   | yes xs≡ys = yes (lema4 x≡y xs≡ys)
+...   | no ¬xs≡ys = no λ x∷xs≡y∷ys → ¬xs≡ys (lema3 x∷xs≡y∷ys)
 
 ---- Parte B ----
 
@@ -86,7 +115,8 @@ data _~_ : List ℕ → List ℕ → Set where
 -- B.1) Demostrar que "~" es reflexiva:
 
 ~-refl : {xs : List ℕ} → xs ~ xs
-~-refl = {!!}
+~-refl {[]} = ~-empty
+~-refl {x ∷ xs} = ~-cons (~-refl {xs})
 
 -- Definimos operadores auxiliares para poder hacer razonamiento ecuacional
 -- con permutaciones:
@@ -103,10 +133,10 @@ _ ~∎ = ~-refl
 -- B.2) Demostrar que "~" es simétrica:
 
 ~-sym : {xs ys : List ℕ} → xs ~ ys → ys ~ xs
-~-sym ~-empty       = {!!}
-~-sym (~-cons p)    = {!!}
-~-sym (~-swap p)    = {!!}
-~-sym (~-trans p q) = {!!}
+~-sym ~-empty       = ~-empty
+~-sym (~-cons p)    = ~-cons (~-sym p)
+~-sym (~-swap p)    = ~-swap (~-sym p)
+~-sym (~-trans p q) = ~-trans (~-sym q) (~-sym p)
 
 -- B.3) Demostrar que "~" es una congruencia con respecto a la concatenación de listas:
 
@@ -114,7 +144,12 @@ _ ~∎ = ~-refl
      → xs ~ xs'
      → ys ~ ys'
      → xs ++ ys ~ xs' ++ ys'
-~-++ p q = {!!}
+~-++ {[]}     {ys} {xs'} {ys'} p q = q
+~-++ {x ∷ xs} {ys} {xs'} {ys'} p q = {!   !}
+  --   xs ++ ys 
+  -- ~⟨ {!   !} ⟩
+  --   xs' ++ ys'
+  -- ~∎
 
 -- B.4) Demostrar que una lista invertida es permutación de la lista original:
 
