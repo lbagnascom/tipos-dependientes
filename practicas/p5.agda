@@ -206,10 +206,16 @@ xs << ys = (z : ℕ) → cantidad-apariciones z xs ≤ cantidad-apariciones z ys
 <<-cons {x} xs<<ys z = +-monoʳ-≤ (iguales? z x) (xs<<ys z)    -- útil:   +-monoʳ-≤ (iguales? z x) ?
 
 <<-swap : {x y : ℕ} {xs ys : List ℕ} → xs << ys → x ∷ y ∷ xs << y ∷ x ∷ ys
-<<-swap xs<<ys z = +-monoʳ-≤ {!   !} {!   !}    -- útil: Data.Nat.Properties.+-monoʳ-≤
+<<-swap {x} {y} xs<<ys z = 
+  let 
+    a = +-monoʳ-≤ (iguales? z x) (xs<<ys z) 
+    b = +-monoʳ-≤ (iguales? z y) (xs<<ys z) 
+    c = +-monoʳ-≤ (iguales? z x + iguales? z y) (xs<<ys z) 
+  in {!   !}
+-- útil: Data.Nat.Properties.+-monoʳ-≤
 
 <<-trans : {xs ys zs : List ℕ} → xs << ys → ys << zs → xs << zs
-<<-trans xs<<ys ys<<zs z = {!!}    -- útil: Data.Nat.Properties.≤-trans
+<<-trans xs<<ys ys<<zs z = ≤-trans (xs<<ys z) (ys<<zs z)    -- útil: Data.Nat.Properties.≤-trans
 
 -- B.6) Usando los lemas de B.5, demostrar que la relación "~" es
 -- correcta con respecto a "<<".
