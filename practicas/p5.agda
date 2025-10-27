@@ -197,16 +197,16 @@ xs << ys = (z : ℕ) → cantidad-apariciones z xs ≤ cantidad-apariciones z ys
 -- B.5) Demostrar las siguientes propiedades de "<<":
 
 <<-empty : [] << []
-<<-empty = {!!}
+<<-empty = λ z → _≤_.z≤n
 
 <<-refl : {xs : List ℕ} → xs << xs
-<<-refl z = {!!}    -- útil: Data.Nat.Properties.≤-refl 
+<<-refl z = ≤-refl    -- útil: Data.Nat.Properties.≤-refl 
 
 <<-cons : {x : ℕ} {xs ys : List ℕ} → xs << ys → x ∷ xs << x ∷ ys
-<<-cons {x} xs<<ys z = {!!}    -- útil:   +-monoʳ-≤ (iguales? z x) ?
+<<-cons {x} xs<<ys z = +-monoʳ-≤ (iguales? z x) (xs<<ys z)    -- útil:   +-monoʳ-≤ (iguales? z x) ?
 
 <<-swap : {x y : ℕ} {xs ys : List ℕ} → xs << ys → x ∷ y ∷ xs << y ∷ x ∷ ys
-<<-swap xs<<ys z = {!!}    -- útil: Data.Nat.Properties.+-monoʳ-≤
+<<-swap xs<<ys z = +-monoʳ-≤ {!   !} {!   !}    -- útil: Data.Nat.Properties.+-monoʳ-≤
 
 <<-trans : {xs ys zs : List ℕ} → xs << ys → ys << zs → xs << zs
 <<-trans xs<<ys ys<<zs z = {!!}    -- útil: Data.Nat.Properties.≤-trans
