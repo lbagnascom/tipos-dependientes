@@ -223,7 +223,7 @@ xs << ys = (z : ℕ) → cantidad-apariciones z xs ≤ cantidad-apariciones z ys
 ~-correcta : {xs ys : List ℕ}
            → xs ~ ys 
            → xs << ys 
-~-correcta ~-empty       = {!!}
-~-correcta (~-cons p)    = {!!}
-~-correcta (~-swap p)    = {!!}
-~-correcta (~-trans p q) = {!!}
+~-correcta                           ~-empty       = <<-empty
+~-correcta {x ∷ xs} {x ∷ ys}         (~-cons p)    = <<-cons {x} {xs} {ys} (~-correcta {xs} {ys} p)
+~-correcta {x ∷ y ∷ xs} {y ∷ x ∷ ys} (~-swap p)    = <<-swap {x} {y} {xs} {ys} (~-correcta p)
+~-correcta {xs}     {ys}             (~-trans {xs} {zs} {ys} p q) = <<-trans {xs} {zs} {ys} (~-correcta p) (~-correcta q)
